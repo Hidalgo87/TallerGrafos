@@ -123,53 +123,85 @@ class Grafo:
     def agregar_nodo(self, nombre_existente, nuevo_nombre):
         """Metodo para crear un nodo en el grafo y relacionarlos, o en su defecto
         si el lo que se recibe en nuevo_nombre ya existe se relaciona"""
-        index_existente = -1
-        index_nuevo = -1
-        for i in range(len(self.listaNombres)):
-            if self.listaNombres[i] == nombre_existente:
-                index_existente = i
-            if self.listaNombres[i] == nuevo_nombre:
-                # Si el nuevo_nombre está en la lista, se toma ese
-                index_nuevo = i
-        # Si el nuevo_nombre no se encontró en la lista, entonces se amplia la matriz
-        # y se agrega el nombre a la lista
-        if index_nuevo == -1:
-            self.listaNombres.append(nuevo_nombre)
-            self.dim += 1
-            index_nuevo = self.dim - 1
-            copia_matriz = self.matriz_adyacencia
-            self.matriz_adyacencia = [[0] * self.dim for _ in range(self.dim)]
-            # el -1 es para que no toque la nueva fila y columna, pues no existia en la pasada, por lo que no
-            # existe en la copia
-            for i in range(0, self.dim - 1):
-                for j in range(0, self.dim - 1):
-                    self.matriz_adyacencia[i][j] = copia_matriz[i][j]
-        # Las dos posiciones simetricas deben conectarse
-        self.matriz_adyacencia[index_existente][index_nuevo] = 1
-        self.matriz_adyacencia[index_nuevo][index_existente] = 1
+
+        if nombre_existente not in self.listaNombres:
+            print("El nodo ingresado como existente no se encontró en el grafo actual")
+            nuevo_nombre_existente = solicitar_caracter("Ingrese el nombre del nodo existente : ")
+            self.agregar_nodo(nuevo_nombre_existente, nuevo_nombre)
+        else:
+            index_existente = -1
+            index_nuevo = -1
+            for i in range(len(self.listaNombres)):
+                if self.listaNombres[i] == nombre_existente:
+                    index_existente = i
+                if self.listaNombres[i] == nuevo_nombre:
+                    # Si el nuevo_nombre está en la lista, se toma ese
+                    index_nuevo = i
+            # Si el nuevo_nombre no se encontró en la lista, entonces se amplia la matriz
+            # y se agrega el nombre a la lista
+            if index_nuevo == -1:
+                self.listaNombres.append(nuevo_nombre)
+                self.dim += 1
+                index_nuevo = self.dim - 1
+                copia_matriz = self.matriz_adyacencia
+                self.matriz_adyacencia = [[0] * self.dim for _ in range(self.dim)]
+                # el -1 es para que no toque la nueva fila y columna, pues no existia en la pasada, por lo que no
+                # existe en la copia
+                for i in range(0, self.dim - 1):
+                    for j in range(0, self.dim - 1):
+                        self.matriz_adyacencia[i][j] = copia_matriz[i][j]
+            # Las dos posiciones simetricas deben conectarse
+            self.matriz_adyacencia[index_existente][index_nuevo] = 1
+            self.matriz_adyacencia[index_nuevo][index_existente] = 1
+
+
+def solicitar_numero(mensaje):
+    ingreso = input(mensaje)
+    try:
+        numero = int(ingreso)
+    except Exception:
+        print("Solo ingresa numeros mi bro")
+        return solicitar_numero(mensaje)
+    return numero
+
+
+def solicitar_caracter(mensaje):
+    ingreso = input(mensaje)
+    if len(ingreso) != 1:
+        print("Ingresa sólo un carácter (numero o letra)")
+        return solicitar_caracter(mensaje)
+    return ingreso
 
 
 def crear_grafo():
     """Metodo para definir numero de elementos para el grafo, matriz de adyacencia con datos definidos"""
-    dimension = int(input("Ingrese el numero de elementos que desea agregar al grafo : "))
+    dimension = solicitar_numero("Ingrese el numero de elementos que desea agregar al grafo : ")
     grafo = Grafo(dimension)
     for i in range(grafo.dim):
-        grafo.listaNombres[i] = input(f"Cual es el nombre del elemento numero {i + 1} : ")
-    print(grafo.listaNombres)
+        caracter_recibido = solicitar_caracter(f"Cual es el nombre del elemento numero {i + 1} : ")
+        while caracter_recibido in grafo.listaNombres:
+            print("Ese nombre ya está registrado")
+            caracter_recibido = solicitar_caracter(f"Cual es el nombre del elemento numero {i + 1} : ")
+        grafo.listaNombres[i] = caracter_recibido
 
+    print("\n")
+    print("--------------- INFORMACIÓN IMPORTANTE -------------------")
     print("La diagonal principal se llenara de ceros automaticamente")
-    print("    pues no pueden haber referencias hacia si mismos")
-    print("      A continuacion llenaras la matriz con 1´s y 0´s")
-    print("Donde los 1´s representan una relacion entre los elementos")
-    print("                Y los ceros lo contrario")
+    print(" pues no pueden haber referencias hacia si mismos.")
+    print("A continuacion llenaras la matriz con 1´s y 0´s")
+    print(" donde los 1´s representan una relacion entre los elementos")
+    print(" y los 0´s lo contrario.")
+    print("---------------------------------------------------------")
     for i in range(0, dimension):
+        print(f"Fila numero {i + 1}")
         for j in range(0, dimension):
             if i == j:
+                print("Se ingresó el 0 de la diagonal principal")
                 continue
             else:
-                valor = int(input("Ingrese un 1 o un 0 : "))
-                while (valor != 1 and valor != 0):
-                    valor = int(input("Oe, 1 o 0 : "))
+                valor = solicitar_numero("Ingrese un 1 o un 0 : ")
+                while valor != 1 and valor != 0:
+                    valor = solicitar_numero("Oe, 1 o 0 : ")
                 matriz = grafo.obtener_matriz()
                 matriz[i][j] = valor
     return grafo
@@ -240,7 +272,7 @@ def menu():
     el_grafo = None
 
     while True:
-        print("=== Menú (Sólo funciona para grafos NO dirigidos) ===")
+        print("=== Menú Taller Grafos (Sólo funciona para grafos NO dirigidos) ===")
         print("1. Crear grafo")
         print("2. Visualizar grafo por matriz de adyacencia")
         print("3. Agregar nodo")
@@ -254,7 +286,13 @@ def menu():
         if opcion == "1":
             if haygrafo:
                 print("Ya hay un grafo creado, desea crear uno nuevo")
-                seleccion = input("s/n: ")
+                while True:
+                    seleccion = solicitar_caracter("s/n: ")
+                    try:
+                        int(seleccion)
+                        print("s o n")
+                    except Exception:
+                        break
                 if seleccion == "s":
                     el_grafo = crear_grafo()
                     haygrafo = True
@@ -272,30 +310,29 @@ def menu():
 
         elif opcion == "3":
             if haygrafo:
-                existente = input("Ingrese el nombre del nodo existente : ")
-                nuevo = input("Ingrese el nombre del nodo (existente o nuevo): ")
+                existente = solicitar_caracter("Ingrese el nombre del nodo existente : ")
+                nuevo = solicitar_caracter("Ingrese el nombre del nodo (existente o nuevo): ")
                 el_grafo.agregar_nodo(existente, nuevo)
             else:
                 print("No hay un grafo creado, por favor seleccione la opcion 1 y cree uno :)")
 
         elif opcion == "4":
             if haygrafo:
-                origen = input("Ingrese el origen : ")
-                destino = input("Ingrese el destino : ")
+                origen = solicitar_caracter("Ingrese el origen : ")
+                destino = solicitar_caracter("Ingrese el destino : ")
 
                 el_grafo.Camino = []
                 el_grafo.visitados = []
 
                 lista_camino = el_grafo.encontrar_camino(origen, destino)
-
+                definitivo = ""
                 if lista_camino is None:
-                    continue
+                    definitivo = "No se encontró un camino"
                 else:
-                    definitivo = ""
                     for cadena in lista_camino:
                         definitivo += cadena
 
-                    print(definitivo)
+                print(definitivo)
 
             else:
                 print("No hay un grafo creado, por favor seleccione la opcion 1 y cree uno :)")
